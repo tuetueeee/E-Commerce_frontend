@@ -1,0 +1,10 @@
+static_sites:
+  - type: static
+    name: sustainique-frontend
+    buildCommand: npm install && npm run build
+    publishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://sustainique-backend.onrender.com/api
+        # Cập nhật URL sau khi deploy backend
+

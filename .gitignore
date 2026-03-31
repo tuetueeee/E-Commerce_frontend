@@ -1,0 +1,34 @@
+# Dependencies - Thư viện tải về, không nên push lên git
+node_modules/
+
+# Build Output - Thư mục chứa code sau khi build xong
+build/
+dist/
+
+# Environment Variables - Chứa key bảo mật, TUYỆT ĐỐI không push
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs - File log lỗi của npm hoặc yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files - File cấu hình riêng của editor (VSCode, Idea...)
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS generated files - File rác của hệ điều hành
+.DS_Store
+Thumbs.db
+
+# Docker - Nếu bạn không muốn push file log của docker
+docker-compose.override.yml
