@@ -1,6 +1,3 @@
-// Placeholder images - replace with actual images when available
-const imgRectangle18 = "https://placehold.co/400x300/90EE90/FFFFFF?text=Design+1";
-const imgRectangle17 = "https://placehold.co/400x300/87CEEB/FFFFFF?text=Design+2";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
@@ -42,22 +39,6 @@ import { Loading } from '../ui/loading';
 import { ErrorDisplay } from '../ui/error';
 import { toast } from "sonner";
 import { Pagination } from '../shared/Pagination';
-
-const mockOrders = [
-  { id: "ORD-2024-156", customer: "Nguyễn Văn A", date: "2024-11-07", status: "Processing", total: 749000, items: 1 },
-  { id: "ORD-2024-155", customer: "Trần Thị B", date: "2024-11-07", status: "Printing", total: 1498000, items: 2 },
-  { id: "ORD-2024-154", customer: "Lê Văn C", date: "2024-11-06", status: "Shipped", total: 998000, items: 1 },
-];
-
-const mockProducts = [
-  { id: 1, name: "Organic Cotton T-Shirt", category: "T-Shirts", price: 299000, stock: 0, status: "Active" },
-  { id: 2, name: "Eco Fleece Hoodie", category: "Hoodies", price: 599000, stock: 0, status: "Active" },
-];
-
-const mockDesigns = [
-  { id: 1, name: "Minimalist Nature", artist: "Green Artist", status: "Approved", sales: 89, image: imgRectangle18 },
-  { id: 2, name: "Save The Planet", artist: "Eco Designer", status: "Pending", sales: 45, image: imgRectangle17 },
-];
 
 export function AdminDashboard() {
   const { token, user } = useAuth();
@@ -258,14 +239,11 @@ export function AdminDashboard() {
       const totalOrders = ordersStatsData?.totalOrders || ordersList.length;
       const activeUsers = usersStatsData?.activeUsers || usersList.filter((u: any) => u.isActive !== false).length || 0;
       
-      // Calculate CO2 saved: approximate 2kg CO2 per order (or null if no orders)
-      const co2Saved = ordersList.length > 0 ? ordersList.length * 2 : null;
-      
       setStats({
         revenue,
         orders: totalOrders,
         users: activeUsers,
-        co2Saved
+        co2Saved: null,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Không thể tải dữ liệu quản trị';
@@ -443,7 +421,7 @@ export function AdminDashboard() {
           toast.error(msg);
           return;
         }
-        if (!formData.price || formData.price < 0) {
+        if (formData.price === undefined || formData.price === null || formData.price === '' || Number(formData.price) < 0) {
           const msg = 'Vui lòng nhập giá sản phẩm hợp lệ (>= 0)';
           setError(msg);
           toast.error(msg);
@@ -455,13 +433,13 @@ export function AdminDashboard() {
           toast.error(msg);
           return;
         }
-        if (!formData.stock || formData.stock < 0) {
+        if (formData.stock === undefined || formData.stock === null || formData.stock === '' || Number(formData.stock) < 0) {
           const msg = 'Vui lòng nhập tồn kho hợp lệ (>= 0)';
           setError(msg);
           toast.error(msg);
           return;
         }
-        if (!formData.quantity || formData.quantity < 0) {
+        if (formData.quantity === undefined || formData.quantity === null || formData.quantity === '' || Number(formData.quantity) < 0) {
           const msg = 'Vui lòng nhập số lượng hợp lệ (>= 0)';
           setError(msg);
           toast.error(msg);

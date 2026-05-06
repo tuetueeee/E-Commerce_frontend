@@ -10,8 +10,8 @@
 // ============================================
 
 const API_BASE_URL =
-  (import.meta.env.VITE_API_URL as string) || "http://localhost:5000/api";
-const SWAGGER_URL = "http://localhost:5000/api-docs";
+  (import.meta.env.VITE_API_URL as string) || "http://localhost:5001/api";
+const SWAGGER_URL = "http://localhost:5001/api-docs";
 
 // ============================================
 // INITIALIZATION FLAG
@@ -48,7 +48,8 @@ export const API_ENDPOINTS = {
     // AI Recommendation endpoints
     GET_AI_TRENDING: `${API_BASE_URL}/products/ai/trending`,
     GET_AI_SIMILAR: (id: string) => `${API_BASE_URL}/products/ai/similar/${id}`,
-    GET_AI_FREQUENTLY_BOUGHT: (id: string) => `${API_BASE_URL}/products/ai/frequently-bought/${id}`,
+    GET_AI_FREQUENTLY_BOUGHT: (id: string) =>
+      `${API_BASE_URL}/products/ai/frequently-bought/${id}`,
     GET_AI_RECOMMENDED: `${API_BASE_URL}/products/ai/recommended`,
   },
 
@@ -71,8 +72,10 @@ export const API_ENDPOINTS = {
   CUSTOMIZER: {
     SAVE_DESIGN: `${API_BASE_URL}/customizer/save`,
     GET_SAVED_DESIGNS: `${API_BASE_URL}/customizer/saved`,
-    GET_SAVED_DESIGN_BY_ID: (id: string) => `${API_BASE_URL}/customizer/saved/${id}`,
-    DELETE_SAVED_DESIGN: (id: string) => `${API_BASE_URL}/customizer/saved/${id}`,
+    GET_SAVED_DESIGN_BY_ID: (id: string) =>
+      `${API_BASE_URL}/customizer/saved/${id}`,
+    DELETE_SAVED_DESIGN: (id: string) =>
+      `${API_BASE_URL}/customizer/saved/${id}`,
     CALCULATE_PRICE: `${API_BASE_URL}/customizer/calculate-price`,
   },
 
@@ -306,9 +309,12 @@ export const API_ENDPOINTS = {
   // ==================
   PAYMENTS: {
     INITIATE: `${API_BASE_URL}/payments/initiate`,
-    VERIFY: (paymentId: string) => `${API_BASE_URL}/payments/${paymentId}/verify`,
-    GET_STATUS: (paymentId: string) => `${API_BASE_URL}/payments/${paymentId}/status`,
-    CANCEL: (paymentId: string) => `${API_BASE_URL}/payments/${paymentId}/cancel`,
+    VERIFY: (paymentId: string) =>
+      `${API_BASE_URL}/payments/${paymentId}/verify`,
+    GET_STATUS: (paymentId: string) =>
+      `${API_BASE_URL}/payments/${paymentId}/status`,
+    CANCEL: (paymentId: string) =>
+      `${API_BASE_URL}/payments/${paymentId}/cancel`,
     CALLBACK_VNPAY: `${API_BASE_URL}/payments/callback/vnpay`,
   },
 
@@ -321,7 +327,8 @@ export const API_ENDPOINTS = {
     CREATE: `${API_BASE_URL}/payment-methods`,
     UPDATE: (id: string) => `${API_BASE_URL}/payment-methods/${id}`,
     DELETE: (id: string) => `${API_BASE_URL}/payment-methods/${id}`,
-    SET_DEFAULT: (id: string) => `${API_BASE_URL}/payment-methods/${id}/set-default`,
+    SET_DEFAULT: (id: string) =>
+      `${API_BASE_URL}/payment-methods/${id}/set-default`,
   },
 };
 
@@ -447,7 +454,7 @@ export const getHeaders = (token?: string) => {
 export async function apiFetch<T>(
   url: string,
   options?: RequestInit,
-  token?: string
+  token?: string,
 ): Promise<T> {
   const headers = getHeaders(token);
 
@@ -492,11 +499,22 @@ export const apiServices = {
         body: JSON.stringify({ email }),
       }),
 
-    changePassword: (data: { currentPassword: string; newPassword: string; confirmPassword: string }, token: string) =>
-      apiFetch(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
-        method: "POST",
-        body: JSON.stringify(data),
-      }, token),
+    changePassword: (
+      data: {
+        currentPassword: string;
+        newPassword: string;
+        confirmPassword: string;
+      },
+      token: string,
+    ) =>
+      apiFetch(
+        API_ENDPOINTS.AUTH.CHANGE_PASSWORD,
+        {
+          method: "POST",
+          body: JSON.stringify(data),
+        },
+        token,
+      ),
   },
 
   // Products Services
@@ -521,7 +539,7 @@ export const apiServices = {
 
     getReadyMade: (page = 1, limit = 10) =>
       apiFetch(
-        `${API_ENDPOINTS.PRODUCTS.GET_READY_MADE}?page=${page}&limit=${limit}`
+        `${API_ENDPOINTS.PRODUCTS.GET_READY_MADE}?page=${page}&limit=${limit}`,
       ),
 
     getById: (id: string) => apiFetch(API_ENDPOINTS.PRODUCTS.GET_BY_ID(id)),
@@ -533,7 +551,7 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     update: (id: string, data: any, token: string) =>
@@ -543,7 +561,7 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     delete: (id: string, token: string) =>
@@ -552,7 +570,7 @@ export const apiServices = {
         {
           method: "DELETE",
         },
-        token
+        token,
       ),
 
     // AI Recommendation Services
@@ -563,10 +581,16 @@ export const apiServices = {
       apiFetch(`${API_ENDPOINTS.PRODUCTS.GET_AI_SIMILAR(id)}?limit=${limit}`),
 
     getFrequentlyBought: (id: string, limit = 5) =>
-      apiFetch(`${API_ENDPOINTS.PRODUCTS.GET_AI_FREQUENTLY_BOUGHT(id)}?limit=${limit}`),
+      apiFetch(
+        `${API_ENDPOINTS.PRODUCTS.GET_AI_FREQUENTLY_BOUGHT(id)}?limit=${limit}`,
+      ),
 
     getRecommended: (token: string, limit = 5) =>
-      apiFetch(`${API_ENDPOINTS.PRODUCTS.GET_AI_RECOMMENDED}?limit=${limit}`, undefined, token),
+      apiFetch(
+        `${API_ENDPOINTS.PRODUCTS.GET_AI_RECOMMENDED}?limit=${limit}`,
+        undefined,
+        token,
+      ),
   },
 
   // Designs Services
@@ -585,25 +609,36 @@ export const apiServices = {
       apiFetch(`${API_ENDPOINTS.DESIGNS.GET_TRENDING}?limit=${limit}`),
 
     getRecommended: (token: string, limit = 5) =>
-      apiFetch(`${API_ENDPOINTS.DESIGNS.GET_AI_RECOMMENDED}?limit=${limit}`, undefined, token),
+      apiFetch(
+        `${API_ENDPOINTS.DESIGNS.GET_AI_RECOMMENDED}?limit=${limit}`,
+        undefined,
+        token,
+      ),
 
     getById: (id: string) => apiFetch(API_ENDPOINTS.DESIGNS.GET_BY_ID(id)),
-    
+
     search: (query: string, limit = 10) =>
-      apiFetch(`${API_ENDPOINTS.DESIGNS.GET_ALL}?search=${encodeURIComponent(query)}&limit=${limit}`),
-    
+      apiFetch(
+        `${API_ENDPOINTS.DESIGNS.GET_ALL}?search=${encodeURIComponent(query)}&limit=${limit}`,
+      ),
+
     filterByCategory: (category: string, limit = 10) =>
-      apiFetch(`${API_ENDPOINTS.DESIGNS.GET_ALL}?category=${encodeURIComponent(category)}&limit=${limit}`),
-    
+      apiFetch(
+        `${API_ENDPOINTS.DESIGNS.GET_ALL}?category=${encodeURIComponent(category)}&limit=${limit}`,
+      ),
+
     filterByTags: (tags: string[], limit = 10) =>
-      apiFetch(`${API_ENDPOINTS.DESIGNS.GET_ALL}?tags=${encodeURIComponent(tags.join(','))}&limit=${limit}`),
+      apiFetch(
+        `${API_ENDPOINTS.DESIGNS.GET_ALL}?tags=${encodeURIComponent(tags.join(","))}&limit=${limit}`,
+      ),
   },
 
   // Cart Services
   cart: {
     get: (token: string) => apiFetch(API_ENDPOINTS.CART.GET, undefined, token),
 
-    getSummary: (token: string) => apiFetch(API_ENDPOINTS.CART.SUMMARY, undefined, token),
+    getSummary: (token: string) =>
+      apiFetch(API_ENDPOINTS.CART.SUMMARY, undefined, token),
 
     addItem: (item: any, token: string) =>
       apiFetch(
@@ -612,7 +647,7 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(item),
         },
-        token
+        token,
       ),
 
     updateItem: (itemId: string, token: string, data: any) =>
@@ -622,7 +657,7 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     removeItem: (itemId: string, token: string) =>
@@ -631,7 +666,7 @@ export const apiServices = {
         {
           method: "DELETE",
         },
-        token
+        token,
       ),
 
     clear: (token: string) =>
@@ -640,7 +675,7 @@ export const apiServices = {
         {
           method: "DELETE",
         },
-        token
+        token,
       ),
 
     applyVoucher: (code: string, token: string) =>
@@ -650,7 +685,7 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify({ voucherCode: code }),
         },
-        token
+        token,
       ),
   },
 
@@ -663,7 +698,7 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(orderData),
         },
-        token
+        token,
       ),
 
     getAll: (token: string, params?: any) => {
@@ -673,7 +708,7 @@ export const apiServices = {
       return apiFetch(
         API_ENDPOINTS.ORDERS.GET_ALL + queryString,
         undefined,
-        token
+        token,
       );
     },
 
@@ -684,7 +719,7 @@ export const apiServices = {
       return apiFetch(
         API_ENDPOINTS.ORDERS.GET_MY_ORDERS + queryString,
         undefined,
-        token
+        token,
       );
     },
 
@@ -700,7 +735,7 @@ export const apiServices = {
         {
           method: "PATCH",
         },
-        token
+        token,
       ),
 
     getStats: (token: string) =>
@@ -719,7 +754,7 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
   },
 
@@ -735,7 +770,7 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     getDashboardStats: (token: string) =>
@@ -745,7 +780,7 @@ export const apiServices = {
       apiFetch(
         `${API_ENDPOINTS.USERS.GET_RECENT_ORDERS}?limit=${limit}`,
         undefined,
-        token
+        token,
       ),
 
     getTreesPlanted: (token: string) =>
@@ -759,7 +794,7 @@ export const apiServices = {
       return apiFetch(
         API_ENDPOINTS.USERS.GET_ALL + queryString,
         undefined,
-        token
+        token,
       );
     },
 
@@ -773,7 +808,7 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     update: (id: string, data: any, token: string) =>
@@ -783,7 +818,7 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     activate: (id: string, token: string) =>
@@ -792,7 +827,7 @@ export const apiServices = {
         {
           method: "PATCH",
         },
-        token
+        token,
       ),
 
     deactivate: (id: string, token: string) =>
@@ -801,7 +836,7 @@ export const apiServices = {
         {
           method: "PATCH",
         },
-        token
+        token,
       ),
 
     delete: (id: string, token: string) =>
@@ -835,7 +870,7 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     update: (id: string, data: any, token: string) =>
@@ -845,7 +880,7 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     setDefault: (id: string, token: string) =>
@@ -854,7 +889,7 @@ export const apiServices = {
         {
           method: "PATCH",
         },
-        token
+        token,
       ),
 
     delete: (id: string, token: string) =>
@@ -863,7 +898,7 @@ export const apiServices = {
         {
           method: "DELETE",
         },
-        token
+        token,
       ),
   },
 
@@ -876,20 +911,24 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     getAll: (token: string) =>
       apiFetch(API_ENDPOINTS.FAVORITES.GET_ALL, undefined, token),
 
-    check: (productId: string | undefined, designId: string | undefined, token: string) => {
+    check: (
+      productId: string | undefined,
+      designId: string | undefined,
+      token: string,
+    ) => {
       const params = new URLSearchParams();
-      if (productId) params.append('productId', productId);
-      if (designId) params.append('designId', designId);
+      if (productId) params.append("productId", productId);
+      if (designId) params.append("designId", designId);
       return apiFetch(
         `${API_ENDPOINTS.FAVORITES.CHECK}?${params}`,
         undefined,
-        token
+        token,
       );
     },
 
@@ -899,7 +938,7 @@ export const apiServices = {
         {
           method: "DELETE",
         },
-        token
+        token,
       ),
   },
 
@@ -912,14 +951,14 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     getByProduct: (productId: string, page = 1, limit = 10) =>
       apiFetch(
         `${API_ENDPOINTS.REVIEWS.GET_BY_PRODUCT(
-          productId
-        )}?page=${page}&limit=${limit}`
+          productId,
+        )}?page=${page}&limit=${limit}`,
       ),
 
     getProductStats: (productId: string) =>
@@ -933,7 +972,7 @@ export const apiServices = {
       return apiFetch(
         `${API_ENDPOINTS.REVIEWS.GET_MY_REVIEWS}?${query}`,
         undefined,
-        token
+        token,
       );
     },
 
@@ -944,7 +983,7 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     delete: (id: string, token: string) =>
@@ -953,7 +992,7 @@ export const apiServices = {
         {
           method: "DELETE",
         },
-        token
+        token,
       ),
   },
 
@@ -970,7 +1009,7 @@ export const apiServices = {
       return apiFetch(
         `${API_ENDPOINTS.VOUCHERS.VALIDATE}?${query}`,
         undefined,
-        token
+        token,
       );
     },
 
@@ -982,7 +1021,7 @@ export const apiServices = {
       return apiFetch(
         API_ENDPOINTS.VOUCHERS.GET_ALL + queryString,
         undefined,
-        token
+        token,
       );
     },
 
@@ -996,7 +1035,7 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     update: (id: string, data: any, token: string) =>
@@ -1006,7 +1045,7 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     delete: (id: string, token: string) =>
@@ -1025,7 +1064,7 @@ export const apiServices = {
       return apiFetch(
         API_ENDPOINTS.REWARDS.GET_HISTORY + queryString,
         undefined,
-        token
+        token,
       );
     },
 
@@ -1038,7 +1077,7 @@ export const apiServices = {
         {
           method: "POST",
         },
-        token
+        token,
       ),
 
     // Admin catalog services (if available)
@@ -1055,7 +1094,7 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     catalogUpdate: (id: string, data: any, token: string) =>
@@ -1065,14 +1104,14 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     catalogDelete: (id: string, token: string) =>
       apiFetch(
         API_ENDPOINTS.REWARDS.CATALOG_DELETE(id),
         { method: "DELETE" },
-        token
+        token,
       ),
   },
 
@@ -1085,17 +1124,25 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     getSavedDesigns: (token: string) =>
       apiFetch(API_ENDPOINTS.CUSTOMIZER.GET_SAVED_DESIGNS, undefined, token),
 
     getSavedDesignById: (id: string, token: string) =>
-      apiFetch(API_ENDPOINTS.CUSTOMIZER.GET_SAVED_DESIGN_BY_ID(id), undefined, token),
+      apiFetch(
+        API_ENDPOINTS.CUSTOMIZER.GET_SAVED_DESIGN_BY_ID(id),
+        undefined,
+        token,
+      ),
 
     deleteSavedDesign: (id: string, token: string) =>
-      apiFetch(API_ENDPOINTS.CUSTOMIZER.DELETE_SAVED_DESIGN(id), { method: "DELETE" }, token),
+      apiFetch(
+        API_ENDPOINTS.CUSTOMIZER.DELETE_SAVED_DESIGN(id),
+        { method: "DELETE" },
+        token,
+      ),
 
     calculatePrice: (data: any, token?: string) =>
       apiFetch(
@@ -1104,25 +1151,28 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token // Optional - endpoint is public
+        token, // Optional - endpoint is public
       ),
   },
 
   // Payment Services
   payments: {
-    initiate: (data: {
-      orderId: string;
-      amount: number;
-      paymentMethodId: string;
-      description: string;
-    }, token: string) =>
+    initiate: (
+      data: {
+        orderId: string;
+        amount: number;
+        paymentMethodId: string;
+        description: string;
+      },
+      token: string,
+    ) =>
       apiFetch(
         API_ENDPOINTS.PAYMENTS.INITIATE,
         {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     verify: (paymentId: string, transactionId: string, token: string) =>
@@ -1132,7 +1182,7 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify({ transactionId }),
         },
-        token
+        token,
       ),
 
     getStatus: (paymentId: string, token: string) =>
@@ -1142,7 +1192,7 @@ export const apiServices = {
       apiFetch(
         API_ENDPOINTS.PAYMENTS.CANCEL(paymentId),
         { method: "POST" },
-        token
+        token,
       ),
   },
 
@@ -1155,38 +1205,38 @@ export const apiServices = {
       return apiFetch(
         API_ENDPOINTS.INVENTORY.GET_STOCK + queryString,
         undefined,
-        token
+        token,
       );
     },
     getStockBySku: (skuId: string, token: string) =>
       apiFetch(
         API_ENDPOINTS.INVENTORY.GET_STOCK_BY_SKU(skuId),
         undefined,
-        token
+        token,
       ),
     inbound: (skuId: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.INVENTORY.INBOUND(skuId),
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     outbound: (skuId: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.INVENTORY.OUTBOUND(skuId),
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     reserve: (skuId: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.INVENTORY.RESERVE(skuId),
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     release: (skuId: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.INVENTORY.RELEASE(skuId),
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     getMovements: (skuId: string, token: string, params?: any) => {
       const queryString = params
@@ -1195,7 +1245,7 @@ export const apiServices = {
       return apiFetch(
         API_ENDPOINTS.INVENTORY.GET_MOVEMENTS(skuId) + queryString,
         undefined,
-        token
+        token,
       );
     },
   },
@@ -1208,13 +1258,13 @@ export const apiServices = {
       apiFetch(
         API_ENDPOINTS.PACKAGING.CREATE,
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     update: (id: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.PACKAGING.UPDATE(id),
         { method: "PATCH", body: JSON.stringify(data) },
-        token
+        token,
       ),
     delete: (id: string, token: string) =>
       apiFetch(API_ENDPOINTS.PACKAGING.DELETE(id), { method: "DELETE" }, token),
@@ -1229,16 +1279,20 @@ export const apiServices = {
       apiFetch(
         API_ENDPOINTS.CATEGORIES.CREATE,
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     update: (id: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.CATEGORIES.UPDATE(id),
         { method: "PATCH", body: JSON.stringify(data) },
-        token
+        token,
       ),
     delete: (id: string, token: string) =>
-      apiFetch(API_ENDPOINTS.CATEGORIES.DELETE(id), { method: "DELETE" }, token),
+      apiFetch(
+        API_ENDPOINTS.CATEGORIES.DELETE(id),
+        { method: "DELETE" },
+        token,
+      ),
   },
 
   // Catalog Services
@@ -1249,13 +1303,13 @@ export const apiServices = {
       apiFetch(
         API_ENDPOINTS.SIZES.CREATE,
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     update: (id: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.SIZES.UPDATE(id),
         { method: "PATCH", body: JSON.stringify(data) },
-        token
+        token,
       ),
     delete: (id: string, token: string) =>
       apiFetch(API_ENDPOINTS.SIZES.DELETE(id), { method: "DELETE" }, token),
@@ -1267,13 +1321,13 @@ export const apiServices = {
       apiFetch(
         API_ENDPOINTS.MATERIALS.CREATE,
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     update: (id: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.MATERIALS.UPDATE(id),
         { method: "PATCH", body: JSON.stringify(data) },
-        token
+        token,
       ),
     delete: (id: string, token: string) =>
       apiFetch(API_ENDPOINTS.MATERIALS.DELETE(id), { method: "DELETE" }, token),
@@ -1285,19 +1339,19 @@ export const apiServices = {
       apiFetch(
         API_ENDPOINTS.PRINT_METHODS.CREATE,
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     update: (id: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.PRINT_METHODS.UPDATE(id),
         { method: "PATCH", body: JSON.stringify(data) },
-        token
+        token,
       ),
     delete: (id: string, token: string) =>
       apiFetch(
         API_ENDPOINTS.PRINT_METHODS.DELETE(id),
         { method: "DELETE" },
-        token
+        token,
       ),
   },
 
@@ -1309,19 +1363,19 @@ export const apiServices = {
       apiFetch(
         API_ENDPOINTS.RETURN_REASONS.CREATE,
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     update: (id: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.RETURN_REASONS.UPDATE(id),
         { method: "PATCH", body: JSON.stringify(data) },
-        token
+        token,
       ),
     delete: (id: string, token: string) =>
       apiFetch(
         API_ENDPOINTS.RETURN_REASONS.DELETE(id),
         { method: "DELETE" },
-        token
+        token,
       ),
   },
 
@@ -1333,13 +1387,13 @@ export const apiServices = {
       apiFetch(
         API_ENDPOINTS.EMPLOYEES.CREATE,
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     update: (id: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.EMPLOYEES.UPDATE(id),
         { method: "PATCH", body: JSON.stringify(data) },
-        token
+        token,
       ),
     delete: (id: string, token: string) =>
       apiFetch(API_ENDPOINTS.EMPLOYEES.DELETE(id), { method: "DELETE" }, token),
@@ -1353,13 +1407,13 @@ export const apiServices = {
       apiFetch(
         API_ENDPOINTS.ASSETS.CREATE,
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     update: (id: string, data: any, token: string) =>
       apiFetch(
         API_ENDPOINTS.ASSETS.UPDATE(id),
         { method: "PATCH", body: JSON.stringify(data) },
-        token
+        token,
       ),
     delete: (id: string, token: string) =>
       apiFetch(API_ENDPOINTS.ASSETS.DELETE(id), { method: "DELETE" }, token),
@@ -1367,7 +1421,7 @@ export const apiServices = {
       apiFetch(
         API_ENDPOINTS.ASSETS.DISPOSE(id),
         { method: "POST", body: JSON.stringify(data) },
-        token
+        token,
       ),
     getDisposals: (id: string, token: string) =>
       apiFetch(API_ENDPOINTS.ASSETS.GET_DISPOSALS(id), undefined, token),
@@ -1388,7 +1442,7 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     update: (id: string, data: any, token: string) =>
@@ -1398,14 +1452,14 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     delete: (id: string, token: string) =>
       apiFetch(
         API_ENDPOINTS.PAYMENT_METHODS.DELETE(id),
         { method: "DELETE" },
-        token
+        token,
       ),
 
     setDefault: (id: string, token: string) =>
@@ -1414,7 +1468,7 @@ export const apiServices = {
         {
           method: "PATCH",
         },
-        token
+        token,
       ),
   },
 
@@ -1428,7 +1482,7 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify({ status }),
         },
-        token
+        token,
       ),
 
     // Designs
@@ -1439,7 +1493,7 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify({ status }),
         },
-        token
+        token,
       ),
 
     // Products
@@ -1450,7 +1504,7 @@ export const apiServices = {
           method: "POST",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     updateProduct: (productId: string, data: any, token: string) =>
@@ -1460,7 +1514,7 @@ export const apiServices = {
           method: "PATCH",
           body: JSON.stringify(data),
         },
-        token
+        token,
       ),
 
     deleteProduct: (productId: string, token: string) =>
@@ -1469,7 +1523,7 @@ export const apiServices = {
         {
           method: "DELETE",
         },
-        token
+        token,
       ),
   },
 };
