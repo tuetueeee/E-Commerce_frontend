@@ -5,6 +5,7 @@ import { ProductGrid } from './shared/ProductGrid';
 
 export function ShopSustainableBlanks() {
   const [products, setProducts] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,8 +15,9 @@ export function ShopSustainableBlanks() {
         setLoading(true);
         setError(null);
         // Use getBlanks instead of getAll to get only blank products
-        const response = await apiServices.products.getBlanks(1, 4);
+        const response = await apiServices.products.getBlanks(1, 6);
         setProducts(response.products || []);
+        setTotal(Number(response.total ?? 0));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Không thể tải sản phẩm');
       } finally {
@@ -55,8 +57,9 @@ export function ShopSustainableBlanks() {
             onRetry={async () => {
               try {
                 setLoading(true);
-                const response = await apiServices.products.getBlanks(1, 4);
+                const response = await apiServices.products.getBlanks(1, 6);
                 setProducts(response.products || []);
+                setTotal(Number(response.total ?? 0));
               } catch (err) {
                 setError(err instanceof Error ? err.message : 'Không thể tải sản phẩm');
               } finally {
@@ -73,7 +76,7 @@ export function ShopSustainableBlanks() {
             href="#blanks"
             className="inline-block border-2 border-black hover:bg-black hover:text-white px-8 py-3 rounded-full transition-all font-medium cursor-pointer"
           >
-            Xem tất cả áo ({products.length + 13})
+            Xem tất cả áo ({total})
           </a>
         </div>
       </div>

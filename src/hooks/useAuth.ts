@@ -1,4 +1,13 @@
-import { useState, useEffect } from 'react';
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
 interface User {
   id: string;
@@ -20,104 +29,109 @@ interface AuthState {
   isLoading: boolean;
 }
 
-/**
- * Decode JWT payload without verification
- * Note: This is for reading payload only, do NOT trust this for security
- */
+interface AuthContextValue extends AuthState {
+  login: (token: string, user: User) => void;
+  logout: () => void;
+  getToken: () => string | null;
+}
+
+const STORAGE_TOKEN = 'auth_token';
+const STORAGE_USER = 'auth_user';
+
 function decodeJWT(token: string): any {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
-    
-    const payload = parts[1];
-    const decoded = JSON.parse(atob(payload));
-    return decoded;
+    return JSON.parse(atob(parts[1]));
   } catch (error) {
     console.error('Failed to decode JWT:', error);
     return null;
   }
 }
 
-export function useAuth() {
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    token: null,
-    isAuthenticated: false,
-    isLoading: true,
+function userFromToken(token: string): User | null {
+  const payload = decodeJWT(token);
+  if (!payload || !payload.sub) return null;
+  return {
+    id: payload.sub,
+    email: payload.email,
+    role: payload.role || 'user',
+    name: payload.name,
+  };
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [authState, setAuthState] = useState<AuthState>(() => {
+    // Synchronous init from localStorage so the first render already has token.
+    // Eliminates the "token=null on mount → redirect to /login" race that
+    // bites pages whose useEffect fires immediately on mount.
+    if (typeof window === 'undefined') {
+      return { user: null, token: null, isAuthenticated: false, isLoading: false };
+    }
+    const token = localStorage.getItem(STORAGE_TOKEN);
+    if (!token) {
+      return { user: null, token: null, isAuthenticated: false, isLoading: false };
+    }
+    const user = userFromToken(token);
+    if (!user) {
+      localStorage.removeItem(STORAGE_TOKEN);
+      localStorage.removeItem(STORAGE_USER);
+      return { user: null, token: null, isAuthenticated: false, isLoading: false };
+    }
+    return { user, token, isAuthenticated: true, isLoading: false };
   });
 
+  // Keep tabs in sync: another tab logging in/out updates this one too.
   useEffect(() => {
-    // Check for existing token on mount
-    const token = localStorage.getItem('auth_token');
-    
-    if (token) {
-      try {
-        // Decode JWT to get user info
-        const payload = decodeJWT(token);
-        
-        if (payload && payload.sub) {
-          const user: User = {
-            id: payload.sub,
-            email: payload.email,
-            role: payload.role || 'user',
-            name: payload.name,
-          };
-          
-          setAuthState({
-            user,
-            token,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-        } else {
-          // Token is invalid, clear storage
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth_user');
-          setAuthState(prev => ({ ...prev, isLoading: false }));
-        }
-      } catch (error) {
-        console.error('Failed to parse token:', error);
-        logout();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== STORAGE_TOKEN) return;
+      const token = e.newValue;
+      if (!token) {
+        setAuthState({ user: null, token: null, isAuthenticated: false, isLoading: false });
+        return;
       }
-    } else {
-      setAuthState(prev => ({ ...prev, isLoading: false }));
-    }
+      const user = userFromToken(token);
+      setAuthState({
+        user,
+        token: user ? token : null,
+        isAuthenticated: !!user,
+        isLoading: false,
+      });
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  const login = (token: string, user: User) => {
-    localStorage.setItem('auth_token', token);
-    // Keep user info in localStorage for backward compatibility
-    localStorage.setItem('auth_user', JSON.stringify(user));
-    setAuthState({
-      user,
-      token,
-      isAuthenticated: true,
-      isLoading: false,
-    });
-  };
+  const login = useCallback((token: string, user: User) => {
+    localStorage.setItem(STORAGE_TOKEN, token);
+    localStorage.setItem(STORAGE_USER, JSON.stringify(user));
+    setAuthState({ user, token, isAuthenticated: true, isLoading: false });
+  }, []);
 
-  const logout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
-    setAuthState({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      isLoading: false,
-    });
-  };
+  const logout = useCallback(() => {
+    localStorage.removeItem(STORAGE_TOKEN);
+    localStorage.removeItem(STORAGE_USER);
+    setAuthState({ user: null, token: null, isAuthenticated: false, isLoading: false });
+  }, []);
 
-  const getToken = (): string | null => {
-    return authState.token || localStorage.getItem('auth_token');
-  };
+  const getToken = useCallback((): string | null => {
+    return authState.token || localStorage.getItem(STORAGE_TOKEN);
+  }, [authState.token]);
 
-  return {
-    user: authState.user,
-    token: authState.token,
-    isAuthenticated: authState.isAuthenticated,
-    isLoading: authState.isLoading,
-    login,
-    logout,
-    getToken,
-  };
+  const value = useMemo<AuthContextValue>(
+    () => ({ ...authState, login, logout, getToken }),
+    [authState, login, logout, getToken],
+  );
+
+  return createElement(AuthContext.Provider, { value }, children);
+}
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error('useAuth must be used within an <AuthProvider>');
+  }
+  return ctx;
 }

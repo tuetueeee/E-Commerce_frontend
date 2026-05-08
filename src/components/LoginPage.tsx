@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { apiServices } from '../services/apiConfig';
 import { useAuth } from '../hooks/useAuth';
 import { Loading } from './ui/loading';
+import { toast } from 'sonner';
 
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -36,7 +37,10 @@ export function LoginPage() {
         login(response.token, response.user);
 
         // Show success message
-        alert(`✅ Đăng nhập thành công! Chào mừng ${response.user.name || response.user.email}`);
+        toast.success(
+          `Chào mừng ${response.user.name || response.user.email}!`,
+          { description: 'Đăng nhập thành công.' },
+        );
 
         // Redirect based on role
         if (response.user.role === 'admin') {

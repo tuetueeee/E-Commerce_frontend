@@ -25,7 +25,7 @@ import { apiServices } from '../services/apiConfig';
 import { useAuth } from '../hooks/useAuth';
 import { Loading } from './ui/loading';
 import { ErrorDisplay } from './ui/error';
-import { toast } from "sonner";
+import { toast } from 'sonner';
 
 interface CheckoutStep {
   number: number;
@@ -515,7 +515,7 @@ export function CheckoutPage() {
                         if (selectedAddress) {
                           setCurrentStep(2);
                         } else {
-                          alert('Vui lòng chọn địa chỉ giao hàng');
+                          toast.warning('Vui lòng chọn địa chỉ giao hàng');
                         }
                       }}
                       disabled={!selectedAddress}

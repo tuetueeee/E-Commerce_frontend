@@ -1,8 +1,9 @@
-import { Search, ShoppingCart, User, Menu, Leaf, Gift, LogOut, Settings, Heart } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, Leaf, Gift, LogOut } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { apiServices } from '../services/apiConfig';
 import logoImage from '../assets/logo.png';
+import { toast } from 'sonner';
 
 export function Header() {
   const [showAccountMenu, setShowAccountMenu] = useState(false);
@@ -50,22 +51,41 @@ export function Header() {
 
           {/* Search Bar - Large like Etsy */}
           <div className="flex-1 max-w-3xl">
-            <form 
+            <form
+              role="search"
               className="relative"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (searchQuery.trim()) {
-                  // Navigate to search results page
-                  window.location.hash = `#search?search=${encodeURIComponent(searchQuery.trim())}`;
+                const q = searchQuery.trim();
+                if (!q) return;
+                const target = `#search?search=${encodeURIComponent(q)}`;
+                if (window.location.hash === target) {
+                  window.dispatchEvent(new HashChangeEvent('hashchange'));
+                } else {
+                  window.location.hash = target;
                 }
               }}
             >
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <button
+                type="submit"
+                aria-label="Tìm kiếm"
+                className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <Search className="w-5 h-5 text-gray-500" />
+              </button>
               <input
-                type="text"
+                type="search"
+                name="search"
+                enterKeyHint="search"
                 placeholder="Tìm kiếm áo, thiết kế độc đáo, vouchers..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  // Vietnamese IME safety: only submit when composition is finished
+                  if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                    e.currentTarget.form?.requestSubmit();
+                  }
+                }}
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-full focus:outline-none focus:border-[#BCF181] transition-colors"
               />
             </form>
@@ -76,10 +96,14 @@ export function Header() {
             <div className="relative">
               <button
                 onClick={() => setShowAccountMenu(!showAccountMenu)}
-                className="hidden lg:flex items-center gap-2 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors"
+                className="hidden lg:flex items-center gap-2 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors max-w-[220px]"
               >
-                <User className="w-5 h-5" />
-                <span>Tài khoản</span>
+                <User className="w-5 h-5 flex-shrink-0" />
+                <span className="truncate">
+                  {user
+                    ? user.full_name || user.email?.split('@')[0] || 'Tài khoản'
+                    : 'Tài khoản'}
+                </span>
               </button>
 
               {/* Account Dropdown */}
@@ -98,14 +122,6 @@ export function Header() {
                         onClick={() => setShowAccountMenu(false)}
                       >
                         <User className="w-5 h-5" />
-                        <span>Bảng điều khiển</span>
-                      </a>
-                      <a
-                        href="#dashboard"
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
-                        onClick={() => setShowAccountMenu(false)}
-                      >
-                        <Settings className="w-5 h-5" />
                         <span>Bảng điều khiển</span>
                       </a>
                       {user.role === 'admin' && (
@@ -127,7 +143,7 @@ export function Header() {
                           logout();
                           setShowAccountMenu(false);
                           window.location.hash = '#home';
-                          alert('✅ Đã đăng xuất thành công!');
+                          toast.success('Đã đăng xuất');
                         }}
                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-red-600 text-left"
                       >

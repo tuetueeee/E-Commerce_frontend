@@ -10,23 +10,26 @@ import { Loading } from './ui/loading';
 import { ErrorDisplay } from './ui/error';
 
 export function OrderSuccessPage() {
-  const { token } = useAuth();
+  const { isLoading: authLoading, getToken } = useAuth();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadOrder();
-  }, []);
+    if (authLoading) return;
+    const currentToken = getToken();
+    if (!currentToken) {
+      window.location.hash = '#login';
+      return;
+    }
+    loadOrder(currentToken);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading]);
 
-  const loadOrder = async () => {
+  const loadOrder = async (currentToken: string) => {
     try {
       setLoading(true);
       setError(null);
-      if (!token) {
-        window.location.hash = '#login';
-        return;
-      }
 
       const urlParams = new URLSearchParams(window.location.hash.replace('#order-success?', ''));
       const orderId = urlParams.get('id');
@@ -36,7 +39,7 @@ export function OrderSuccessPage() {
         return;
       }
 
-      const response = await apiServices.orders.getById(orderId, token);
+      const response = await apiServices.orders.getById(orderId, currentToken);
       setOrder(response);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load order');

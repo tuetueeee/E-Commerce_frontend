@@ -10,6 +10,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Loading } from './ui/loading';
 import { ErrorDisplay } from './ui/error';
 import { StarRatingInput } from './ui/star-rating';
+import { toast } from 'sonner';
 
 interface Product {
   id: string;
@@ -201,7 +202,7 @@ export function BlankDetailPage() {
         return;
       }
       if (!product || !product.id) {
-        alert('Sản phẩm không tồn tại');
+        toast.error('Sản phẩm không tồn tại');
         return;
       }
 
@@ -211,11 +212,11 @@ export function BlankDetailPage() {
       };
       console.log('Adding to cart:', cartItem);
       await apiServices.cart.addItem(cartItem, token);
-      alert(`Đã thêm ${quantity} sản phẩm vào giỏ hàng thành công!`);
+      toast.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng`);
     } catch (err: any) {
       console.error('Add to cart error:', err);
       const errorMessage = err?.message || err?.response?.data?.message || 'Không thể thêm vào giỏ hàng';
-      alert(errorMessage);
+      toast.error(errorMessage);
       setError(errorMessage);
     } finally {
       setAddingToCart(false);
@@ -228,7 +229,7 @@ export function BlankDetailPage() {
       return;
     }
     if (!product || !product.id) {
-      alert('Sản phẩm không tồn tại');
+      toast.error('Sản phẩm không tồn tại');
       return;
     }
     try {
@@ -262,7 +263,7 @@ export function BlankDetailPage() {
       const errorMessage = err?.message || err?.response?.data?.message || 'Không thể cập nhật yêu thích';
       // Chỉ hiển thị lỗi nếu không phải lỗi "Already in favorites"
       if (!errorMessage.includes('Already in favorites')) {
-        alert(errorMessage);
+        toast.error(errorMessage);
         setError(errorMessage);
       }
     }
@@ -282,16 +283,16 @@ export function BlankDetailPage() {
       } else {
         // Fallback: copy to clipboard
         await navigator.clipboard.writeText(url);
-        alert('Đã sao chép link vào clipboard!');
+        toast.success('Đã sao chép link vào clipboard');
       }
     } catch (err) {
       // User cancelled or error
       if (err instanceof Error && err.name !== 'AbortError') {
         // Fallback: copy to clipboard
         navigator.clipboard.writeText(url).then(() => {
-          alert('Đã sao chép link vào clipboard!');
+          toast.success('Đã sao chép link vào clipboard');
         }).catch(() => {
-          alert('Không thể chia sẻ. Link: ' + url);
+          toast.error('Không thể chia sẻ', { description: url });
         });
       }
     }
@@ -749,7 +750,7 @@ export function BlankDetailPage() {
                       const comment = (e.target as any).comment?.value;
                       
                       if (!rating || !comment) {
-                        alert('Vui lòng điền đầy đủ thông tin');
+                        toast.warning('Vui lòng điền đầy đủ thông tin');
                         return;
                       }
 
@@ -760,14 +761,14 @@ export function BlankDetailPage() {
                           rating: parseInt(rating),
                           comment
                         }, token);
-                        alert('Cảm ơn bạn! Đánh giá của bạn đã được gửi.');
+                        toast.success('Cảm ơn bạn!', { description: 'Đánh giá của bạn đã được gửi.' });
                         (e.target as any).reset();
                         if (productId) {
                           loadReviews(productId);
                           loadReviewStats(productId);
                         }
                       } catch (err) {
-                        alert('Không thể gửi đánh giá');
+                        toast.error('Không thể gửi đánh giá');
                       }
                     }}>
                       <div className="space-y-4">

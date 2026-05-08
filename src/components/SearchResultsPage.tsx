@@ -88,8 +88,13 @@ export function SearchResultsPage() {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const input = form.querySelector('input') as HTMLInputElement;
-    if (input.value.trim()) {
-      window.location.hash = `#search?search=${encodeURIComponent(input.value.trim())}`;
+    const q = input.value.trim();
+    if (!q) return;
+    const target = `#search?search=${encodeURIComponent(q)}`;
+    if (window.location.hash === target) {
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    } else {
+      window.location.hash = target;
     }
   };
 
@@ -114,12 +119,26 @@ export function SearchResultsPage() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Search Bar */}
           <div className="mb-8">
-            <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <form role="search" onSubmit={handleSearch} className="relative max-w-2xl mx-auto">
+              <button
+                type="submit"
+                aria-label="Tìm kiếm"
+                className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <Search className="w-5 h-5 text-gray-500" />
+              </button>
               <input
-                type="text"
+                type="search"
+                name="search"
+                enterKeyHint="search"
                 placeholder="Tìm kiếm áo, thiết kế độc đáo..."
                 defaultValue={searchQuery}
+                key={searchQuery}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                    e.currentTarget.form?.requestSubmit();
+                  }
+                }}
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-full focus:outline-none focus:border-[#BCF181] transition-colors"
               />
             </form>

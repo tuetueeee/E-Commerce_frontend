@@ -20,25 +20,29 @@ import { Loading } from './ui/loading';
 import { ErrorDisplay } from './ui/error';
 
 export function OrderTrackingPage() {
-    const { token } = useAuth();
+    const { token, isLoading: authLoading, getToken } = useAuth();
     const [tracking, setTracking] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
-        if (token) {
-            loadTracking();
-        } else {
+        if (authLoading) return;
+        const currentToken = getToken();
+        if (!currentToken) {
             window.location.hash = '#login';
+            return;
         }
-    }, [token]);
+        loadTracking(currentToken);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [authLoading]);
 
-    const loadTracking = async () => {
+    const loadTracking = async (currentToken?: string) => {
         try {
             setLoading(true);
             setError(null);
-            if (!token) return;
+            const t = currentToken || token || getToken();
+            if (!t) return;
 
             const urlParams = new URLSearchParams(window.location.hash.replace('#order-tracking?', ''));
             const orderId = urlParams.get('id');
@@ -50,11 +54,11 @@ export function OrderTrackingPage() {
 
             // Try shipments API first, fallback to orders tracking
             try {
-                const shipmentData = await apiServices.shipments.getByOrder(orderId, token);
+                const shipmentData = await apiServices.shipments.getByOrder(orderId, t);
                 setTracking(shipmentData);
             } catch (err) {
                 // Fallback to orders tracking endpoint
-                const trackingData = await apiServices.orders.getTracking(orderId, token);
+                const trackingData = await apiServices.orders.getTracking(orderId, t);
                 setTracking(trackingData);
             }
         } catch (err) {

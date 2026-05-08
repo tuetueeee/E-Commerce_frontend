@@ -1,6 +1,7 @@
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { ShopSustainableBlanks } from './components/ShopSustainableBlanks';
+import { ShopReadyMade } from './components/ShopReadyMade';
 import { DiscoverDesigns } from './components/DiscoverDesigns';
 import { GreenCommitment } from './components/GreenCommitment';
 import { VoucherCoins } from './components/VoucherCoins';
@@ -8,6 +9,7 @@ import { ProductRecommendations } from './components/ProductRecommendations';
 import { DesignRecommendations } from './components/DesignRecommendations';
 import { Footer } from './components/Footer';
 import { BlanksListingPage } from './components/BlanksListingPage';
+import { ReadyMadeListingPage } from './components/ReadyMadeListingPage';
 import { BlankDetailPage } from './components/BlankDetailPage';
 import { DesignGalleryPage } from './components/DesignGalleryPage';
 import { DesignDetailPage } from './components/DesignDetailPage';
@@ -37,10 +39,11 @@ import { SearchResultsPage } from './components/SearchResultsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useState, useEffect } from 'react';
 
-type PageType = 
-  | 'home' 
-  | 'blanks' 
-  | 'blank-detail' 
+type PageType =
+  | 'home'
+  | 'blanks'
+  | 'ready-made'
+  | 'blank-detail'
   | 'designs' 
   | 'design-detail' 
   | 'my-designs'
@@ -111,6 +114,8 @@ export default function App() {
   switch (currentPage) {
     case 'blanks':
       return <BlanksListingPage />;
+    case 'ready-made':
+      return <ReadyMadeListingPage />;
     case 'blank-detail':
       return <BlankDetailPage />;
     case 'designs':
@@ -170,6 +175,7 @@ export default function App() {
           <main>
             <HeroSection />
             <ShopSustainableBlanks />
+            <ShopReadyMade />
             <DiscoverDesigns />
             <GreenCommitment />
             <VoucherCoins />

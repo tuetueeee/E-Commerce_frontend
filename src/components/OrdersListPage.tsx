@@ -30,7 +30,7 @@ const statusConfig: Record<string, { label: string; icon: any; color: string }> 
 };
 
 export function OrdersListPage() {
-    const { token } = useAuth();
+    const { token, isLoading: authLoading, getToken } = useAuth();
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -41,25 +41,29 @@ export function OrdersListPage() {
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        if (token) {
-            loadOrders();
-        } else {
+        if (authLoading) return;
+        const currentToken = getToken();
+        if (!currentToken) {
             window.location.hash = '#login';
+            return;
         }
-    }, [token, page, statusFilter]);
+        loadOrders(currentToken);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [authLoading, page, statusFilter]);
 
-    const loadOrders = async () => {
+    const loadOrders = async (currentToken?: string) => {
         try {
             setLoading(true);
             setError(null);
-            if (!token) return;
+            const t = currentToken || token || getToken();
+            if (!t) return;
 
             const params: any = { page, limit };
             if (statusFilter !== 'all') {
                 params.status = statusFilter;
             }
 
-            const response = await apiServices.orders.getMyOrders(token, params) as any;
+            const response = await apiServices.orders.getMyOrders(t, params) as any;
             setOrders(response.orders || []);
             setTotalPages(response.totalPages || 1);
         } catch (err) {

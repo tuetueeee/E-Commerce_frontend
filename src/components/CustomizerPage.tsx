@@ -16,6 +16,8 @@ import { apiServices } from '../services/apiConfig';
 import { useAuth } from '../hooks/useAuth';
 import { Loading } from './ui/loading';
 import { ErrorDisplay } from './ui/error';
+import { toast } from 'sonner';
+import { useConfirm } from '../hooks/useConfirm';
 
 interface CanvasElement {
   id: string;
@@ -35,6 +37,7 @@ interface CanvasElement {
 
 export function CustomizerPage() {
   const { getToken } = useAuth();
+  const { confirm, prompt } = useConfirm();
   const token = getToken();
   const [product, setProduct] = useState<any>(null);
   const [designs, setDesigns] = useState<any[]>([]);
@@ -268,7 +271,7 @@ export function CustomizerPage() {
     // Validate design has an image - check multiple possible fields
     const imageUrl = design.image || design.preview_url || design.imageUrl || design.url || design.assets?.[0]?.file_url || '';
     if (!imageUrl || imageUrl.trim() === '') {
-      alert('Hình ảnh thiết kế không hợp lệ. Vui lòng chọn thiết kế khác.');
+      toast.error('Hình ảnh thiết kế không hợp lệ', { description: 'Vui lòng chọn thiết kế khác.' });
       return;
     }
     const newElement: CanvasElement = {
@@ -288,13 +291,13 @@ export function CustomizerPage() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Vui lòng chọn file ảnh hợp lệ (JPG, PNG, GIF, etc.)');
+      toast.warning('Vui lòng chọn file ảnh hợp lệ (JPG, PNG, GIF…)');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Kích thước file quá lớn. Vui lòng chọn file nhỏ hơn 5MB.');
+      toast.warning('Kích thước file quá lớn', { description: 'Vui lòng chọn file nhỏ hơn 5MB.' });
       return;
     }
 
@@ -316,7 +319,7 @@ export function CustomizerPage() {
       }
     };
     reader.onerror = () => {
-      alert('Lỗi khi đọc file. Vui lòng thử lại.');
+      toast.error('Lỗi khi đọc file. Vui lòng thử lại.');
     };
     reader.readAsDataURL(file);
 
@@ -366,19 +369,19 @@ export function CustomizerPage() {
 
   const handleAddToCart = async () => {
     if (!product || !token) {
-      alert('Vui lòng đăng nhập trước');
+      toast.warning('Vui lòng đăng nhập trước');
       window.location.hash = '#login';
       return;
     }
 
     // Validate required fields
     if (!selectedColor?.hex) {
-      alert('Vui lòng chọn màu sắc');
+      toast.warning('Vui lòng chọn màu sắc');
       return;
     }
 
     if (!selectedSize) {
-      alert('Vui lòng chọn kích thước');
+      toast.warning('Vui lòng chọn kích thước');
       return;
     }
 
@@ -438,7 +441,7 @@ export function CustomizerPage() {
         },
         token,
       );
-      alert('✅ Thêm vào giỏ hàng thành công!');
+      toast.success('Đã thêm vào giỏ hàng');
       window.location.hash = '#cart';
     } catch (err: any) {
       console.error('Error adding to cart:', err);
@@ -446,39 +449,42 @@ export function CustomizerPage() {
         err?.response?.data?.message ||
         err?.message ||
         'Không thể thêm vào giỏ hàng. Vui lòng thử lại.';
-      alert(`❌ ${errorMessage}`);
+      toast.error(errorMessage);
     }
   };
 
   const handleSaveDesign = async () => {
     if (!product || !token) {
-      alert('Vui lòng đăng nhập');
+      toast.warning('Vui lòng đăng nhập');
       window.location.hash = '#login';
       return;
     }
 
     // Validate required fields
     if (!selectedColor?.hex) {
-      alert('Vui lòng chọn màu sắc');
+      toast.warning('Vui lòng chọn màu sắc');
       return;
     }
 
     if (!selectedSize) {
-      alert('Vui lòng chọn kích thước');
+      toast.warning('Vui lòng chọn kích thước');
       return;
     }
 
     // Validate canvasData structure
     if (!canvasElements || !Array.isArray(canvasElements)) {
-      alert('Dữ liệu thiết kế không hợp lệ');
+      toast.error('Dữ liệu thiết kế không hợp lệ');
       return;
     }
 
     try {
-      const designName = prompt(
-        'Nhập tên cho thiết kế này:',
-        `Design ${new Date().toLocaleDateString('vi-VN')}`,
-      );
+      const designName = await prompt({
+        title: 'Đặt tên cho thiết kế',
+        description: 'Tên này sẽ hiển thị trong danh sách thiết kế đã lưu.',
+        placeholder: 'Ví dụ: Áo phông summer 2026',
+        defaultValue: `Design ${new Date().toLocaleDateString('vi-VN')}`,
+        confirmText: 'Lưu',
+      });
 
       if (!designName) {
         return; // User cancelled
@@ -530,7 +536,7 @@ export function CustomizerPage() {
         token,
       ) as any;
 
-      alert('✅ Đã lưu thiết kế thành công!');
+      toast.success('Đã lưu thiết kế');
       console.log('Saved design:', savedDesign);
       
       // Reload saved designs list
@@ -544,7 +550,7 @@ export function CustomizerPage() {
         err?.response?.data?.message ||
         err?.message ||
         'Không thể lưu thiết kế. Vui lòng thử lại.';
-      alert(`❌ ${errorMessage}`);
+      toast.error(errorMessage);
     }
   };
 
@@ -578,24 +584,31 @@ export function CustomizerPage() {
         if (design.canvasData.selectedSize) {
           setSelectedSize(design.canvasData.selectedSize);
         }
-        alert('✅ Đã tải thiết kế thành công!');
+        toast.success('Đã tải thiết kế');
       }
     } catch (err) {
-      alert('❌ Không thể tải thiết kế');
+      toast.error('Không thể tải thiết kế');
       console.error('Error loading saved design:', err);
     }
   };
 
   // Delete saved design
   const deleteSavedDesign = async (designId: string) => {
-    if (!window.confirm('Bạn chắc chắn muốn xóa thiết kế này?')) return;
-    
+    const ok = await confirm({
+      title: 'Xóa thiết kế?',
+      description: 'Hành động này không thể hoàn tác.',
+      confirmText: 'Xóa',
+      cancelText: 'Hủy',
+      variant: 'danger',
+    });
+    if (!ok) return;
+
     try {
       await apiServices.customizer.deleteSavedDesign(designId, token!);
       setSavedDesigns(savedDesigns.filter(d => (d.id || d.DESIGN_ID) !== designId));
-      alert('✅ Đã xóa thiết kế thành công!');
+      toast.success('Đã xóa thiết kế');
     } catch (err) {
-      alert('❌ Không thể xóa thiết kế');
+      toast.error('Không thể xóa thiết kế');
       console.error('Error deleting saved design:', err);
     }
   };

@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { Toaster } from "./components/ui/sonner";
+import { AuthProvider } from "./hooks/useAuth";
+import { ConfirmProvider } from "./hooks/useConfirm";
 
 // Simple error boundary using functional component with error state
 type ErrorBoundaryProps = {
@@ -57,10 +59,12 @@ try {
   console.log("Root created, rendering App...");
   root.render(
     <ErrorBoundary children={
-      <React.Fragment>
-        <App />
-        <Toaster position="top-right" richColors />
-      </React.Fragment>
+      <AuthProvider>
+        <ConfirmProvider>
+          <App />
+          <Toaster position="top-right" richColors />
+        </ConfirmProvider>
+      </AuthProvider>
     } />
   );
   console.log("App rendered successfully");

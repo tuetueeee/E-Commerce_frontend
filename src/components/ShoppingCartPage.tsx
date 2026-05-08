@@ -12,6 +12,7 @@ import { apiServices } from '../services/apiConfig';
 import { Loading } from './ui/loading';
 import { ErrorDisplay } from './ui/error';
 import { ProductCard } from './shared/ProductCard';
+import { toast } from 'sonner';
 
 interface CartItem {
   id: string;
@@ -215,7 +216,7 @@ export function ShoppingCartPage() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Mã voucher không hợp lệ';
       setError(errorMessage);
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setApplyingVoucher(false);
     }

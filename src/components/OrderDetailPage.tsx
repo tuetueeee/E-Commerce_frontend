@@ -20,6 +20,8 @@ import {
 import { apiServices } from '../services/apiConfig';
 import { useAuth } from '../hooks/useAuth';
 import { Loading } from './ui/loading';
+import { toast } from 'sonner';
+import { useConfirm } from '../hooks/useConfirm';
 import { ErrorDisplay } from './ui/error';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -33,6 +35,7 @@ const statusConfig: Record<string, { label: string; icon: any; color: string }> 
 
 export function OrderDetailPage() {
     const { token, getToken } = useAuth();
+    const { confirm } = useConfirm();
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -70,16 +73,25 @@ export function OrderDetailPage() {
     };
 
     const handleCancelOrder = async () => {
-        if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) return;
-        
+        const ok = await confirm({
+            title: 'Hủy đơn hàng?',
+            description: 'Bạn có chắc chắn muốn hủy đơn hàng này? Hành động không thể hoàn tác.',
+            confirmText: 'Hủy đơn',
+            cancelText: 'Quay lại',
+            variant: 'danger',
+        });
+        if (!ok) return;
+
         try {
             if (!token || !order) return;
-            
+
             await apiServices.orders.cancel(order.id, token);
             await loadOrder(); // Reload để cập nhật status
-            alert('Đơn hàng đã được hủy');
+            toast.success('Đơn hàng đã được hủy');
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Không thể hủy đơn hàng');
+            const msg = err instanceof Error ? err.message : 'Không thể hủy đơn hàng';
+            toast.error(msg);
+            setError(msg);
         }
     };
 
